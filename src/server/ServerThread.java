@@ -6,7 +6,6 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -15,21 +14,24 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
-public class ServerThreads extends Thread {
+public class ServerThread extends Thread {
     private Socket socket;
     private JLabel imageLabel;
     private JLabel statusLabel;
+    private int client_id;
 
-    public ServerThreads(Socket socket, JLabel imageLabel, JLabel statusLabel) {
+    public ServerThread(Socket socket,int cid, JLabel imgLabel, JLabel statLabel) {
         this.socket = socket;
-        this.imageLabel = imageLabel;
-        this.statusLabel = statusLabel;
+        this.imageLabel = imgLabel;
+        this.statusLabel = statLabel;
+        this.client_id = cid;
     }
 
     @Override
     public void run() {
         try {
-            statusLabel.setText("Receiving Image...");
+            statusLabel.setText("client " + client_id + " Receiving Image...");
+            System.out.println("client " + client_id + " Receiving Image...");
 
             InputStream inputStream = socket.getInputStream();
             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
@@ -55,13 +57,15 @@ public class ServerThreads extends Thread {
 
                 // Save the received image to a specified directory
                 String directory = "C:\\Users\\ASUS\\OneDrive\\Desktop\\server\\";
-                File imageFile = new File(directory + "received_image.jpg");
+                File imageFile = new File(directory +"client_" + client_id + "_received_image.jpg");
                 ImageIO.write(bufferedImage, "jpg", imageFile);
 
                 // Display the path of the saved image
-                statusLabel.setText("Image Received and Saved: " + imageFile.getAbsolutePath());
+                statusLabel.setText("Image Received by "+"client " + client_id +" and Saved: " + imageFile.getAbsolutePath());
+                System.out.println("Image Received by "+"client " + client_id +" and Saved: " + imageFile.getAbsolutePath());
             } else {
                 statusLabel.setText("Error: Failed to read image from input stream");
+                System.out.println("Error: Failed to read image from input stream");
             }
 
             socket.close();

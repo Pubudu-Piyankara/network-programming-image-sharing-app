@@ -1,22 +1,16 @@
 package server;
 
 import java.awt.BorderLayout;
-import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import java.net.*;
+import javax.swing.*;
+
 
 
 public class Server {
     private static final int PORT = 6000;
+    private static int current_clients = 1;
 
     public static void main(String[] args) throws IOException {
         JFrame frame = new JFrame("Image Receiver");
@@ -32,38 +26,19 @@ public class Server {
         frame.setVisible(true);
 
         ServerSocket serverSocket = new ServerSocket(PORT);
+        
         try {
-            while (true) {
-                Socket socket = serverSocket.accept();
-                statusLabel.setText("Receiving Image...");
+			while (true) {
+				// Listening for any client socket requests
+				Socket client = serverSocket.accept();
+				System.out.println("Client is waiting............\n\n");
 
-                InputStream inputStream = socket.getInputStream();
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-                
-                BufferedImage bufferedImage = ImageIO.read(bufferedInputStream);
-                bufferedInputStream.close();
-
-                if (bufferedImage != null) {
-                    // Display the received image
-                    imageLabel.setIcon(new ImageIcon(bufferedImage));
-
-                    // Save the received image to a specified directory
-                    String directory = "C:\\Users\\ASUS\\OneDrive\\Desktop\\server\\";
-                    File imageFile = new File(directory + "received_image.jpg");
-                    ImageIO.write(bufferedImage, "jpg", imageFile);
-                    
-                    // Display the path of the saved image
-                    statusLabel.setText("Image Received and Saved: " + imageFile.getAbsolutePath());
-                } else {
-                    statusLabel.setText("Error: Failed to read image from input stream");
-                }
-
-                socket.close();
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            statusLabel.setText("Error: " + ex.getMessage());
-        } finally {
+				ServerThread ct = new ServerThread(client,current_clients, statusLabel, statusLabel);
+				System.out.println("Client " +current_clients + " connected");
+				ct.start();
+				current_clients++;
+			}
+        }finally {
             serverSocket.close();
         }
 

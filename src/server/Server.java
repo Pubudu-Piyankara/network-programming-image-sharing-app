@@ -3,9 +3,9 @@ package server;
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -14,49 +14,58 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+
 public class Server {
-	
-	private static final int PORT = 6000;
+    private static final int PORT = 6000;
 
     public static void main(String[] args) throws IOException {
-    	JFrame jf = new JFrame("Server");
-    	jf.setSize(720, 480);    
-    	jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    	
-    	JLabel jLabel = new JLabel("Waiting...");		
-    	
-    	jf.add(jLabel, BorderLayout.SOUTH);
+        JFrame frame = new JFrame("Image Receiver");
+        frame.setSize(400, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    	jf.setVisible(true);
-    	//Listening to client request
-        ServerSocket serversocket = new ServerSocket(PORT);
+        JLabel imageLabel = new JLabel();
+        frame.add(imageLabel, BorderLayout.CENTER);
+
+        JLabel statusLabel = new JLabel("Waiting for Image...");
+        frame.add(statusLabel, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
+
+        ServerSocket serverSocket = new ServerSocket(PORT);
         try {
-        	while(true) {
-        		//accept client request
-        		Socket socket = serversocket.accept();
-        		System.out.println("Client is connected...");
-        		InputStream inputStream = socket.getInputStream();
-        		BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-        		BufferedImage bufferedImage = ImageIO.read(bufferedInputStream);
-        		bufferedInputStream.close();
-        		
-        		JLabel jLabelPic = new JLabel(new ImageIcon(bufferedImage));
-        		jLabel.setText("Image received");
-        		jf.add(jLabelPic, BorderLayout.CENTER);
-        		
-        		try {
-        			PrintWriter response = new PrintWriter(socket.getOutputStream(),true);
-        			response.println("This is the response from the server");
-        		}
-        		finally {
-        			socket.close();
-        		}
-        		
-        	}
-    }finally{
-    	serversocket.close();
-    }
-    }
+            while (true) {
+                Socket socket = serverSocket.accept();
+                statusLabel.setText("Receiving Image...");
 
+                InputStream inputStream = socket.getInputStream();
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+                
+                BufferedImage bufferedImage = ImageIO.read(bufferedInputStream);
+                bufferedInputStream.close();
+
+                if (bufferedImage != null) {
+                    // Display the received image
+                    imageLabel.setIcon(new ImageIcon(bufferedImage));
+
+                    // Save the received image to a specified directory
+                    String directory = "C:\\Users\\ASUS\\OneDrive\\Desktop\\server\\";
+                    File imageFile = new File(directory + "received_image.jpg");
+                    ImageIO.write(bufferedImage, "jpg", imageFile);
+                    
+                    // Display the path of the saved image
+                    statusLabel.setText("Image Received and Saved: " + imageFile.getAbsolutePath());
+                } else {
+                    statusLabel.setText("Error: Failed to read image from input stream");
+                }
+
+                socket.close();
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            statusLabel.setText("Error: " + ex.getMessage());
+        } finally {
+            serverSocket.close();
+        }
+
+    }
 }
-

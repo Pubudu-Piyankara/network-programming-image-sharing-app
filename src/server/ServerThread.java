@@ -19,19 +19,21 @@ public class ServerThread extends Thread {
     private JLabel imageLabel;
     private JLabel statusLabel;
     private int client_id;
+    private int thread_id;
 
     public ServerThread(Socket socket,int cid, JLabel imgLabel, JLabel statLabel) {
         this.socket = socket;
         this.imageLabel = imgLabel;
         this.statusLabel = statLabel;
         this.client_id = cid;
+        this.thread_id = cid;
     }
 
     @Override
     public void run() {
         try {
             statusLabel.setText("client " + client_id + " Receiving Image...");
-            System.out.println("client " + client_id + " Receiving Image...");
+            System.out.println("Thread "+ thread_id+" : client " + client_id + " Receiving Image...");
 
             InputStream inputStream = socket.getInputStream();
             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);

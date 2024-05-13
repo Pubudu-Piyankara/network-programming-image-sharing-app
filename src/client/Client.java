@@ -1,5 +1,5 @@
 package client;
-
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,12 +7,15 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
 import javax.imageio.ImageIO;
-import javax.swing.*;
 
 public class Client {
-    public static void main(String[] args)throws IOException {
+    // Define image label and socket as class variables for access within methods
+    private static JLabel imageLabel;
+    private static Socket socket;
+
+    public static void main(String[] args) throws IOException {
         JFrame frame = new JFrame("Image Uploader");
-        frame.setSize(400, 200);
+        frame.setSize(400, 300);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel();
@@ -25,7 +28,7 @@ public class Client {
     private static void placeComponents(JPanel panel) {
         panel.setLayout(null);
 
-        JLabel imageLabel = new JLabel();
+        imageLabel = new JLabel();
         imageLabel.setBounds(10, 10, 150, 150);
         panel.add(imageLabel);
 
@@ -54,7 +57,7 @@ public class Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    Socket socket = new Socket("localhost", 6000);
+                    socket = new Socket("localhost", 6000);
                     OutputStream outputStream = socket.getOutputStream();
                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 
@@ -90,6 +93,42 @@ public class Client {
                 }
             }
         });
+    }
+    
+    private static void placeComponents2(JPanel panel) {
+        panel.setLayout(null);
 
+        imageLabel = new JLabel();
+        imageLabel.setBounds(10, 10, 150, 150);
+        panel.add(imageLabel);
+
+    }
+
+    public static void rImageData() {
+    	JFrame frame = new JFrame("Image Uploader");
+        frame.setSize(400, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel panel = new JPanel();
+        frame.add(panel);
+        placeComponents2(panel);
+        frame.setVisible(true);
+        try {
+        	Socket socket = new Socket("localhost", 6001);
+        	
+            // Receive the image data from the server
+            InputStream inputStream = socket.getInputStream();
+            BufferedImage receivedImage = ImageIO.read(inputStream);
+
+            // Display the received image data in the client's UI
+            ImageIcon receivedIcon = new ImageIcon(receivedImage);
+            imageLabel.setIcon(receivedIcon);
+            System.out.println("Received image: " + receivedIcon);
+            
+            socket.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error Receiving Image: " + ex.getMessage());
+        }
     }
 }
